@@ -1,0 +1,25 @@
+services:
+  postgres-db:
+    image: postgres:15.5
+    container_name: daily_project_db_postgres
+    environment:
+      - POSTGRES_DB=daily_project
+      - POSTGRES_ROOT_PASSWORD=Admin%123
+      - POSTGRES_USER=rafaelgalvezg
+      - POSTGRES_PASSWORD=Rgg%123
+    ports:
+      - "5436:5432"
+
+  app-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: daily_project_app_backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres-db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db-postgres:5436/daily_project
+      - SPRING_DATASOURCE_USERNAME=rafaelgalvezg
+      - SPRING_DATASOURCE_PASSWORD=Rgg%123

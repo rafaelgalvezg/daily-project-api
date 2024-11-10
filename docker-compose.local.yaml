@@ -1,0 +1,11 @@
+services:
+  db-postgres:
+    image: postgres:15.5
+    container_name: daily_project_db_postgres
+    environment:
+      - POSTGRES_DB=daily_project
+      - POSTGRES_ROOT_PASSWORD=Admin%123
+      - POSTGRES_USER=rafaelgalvezg
+      - POSTGRES_PASSWORD=Rgg%123
+    ports:
+      - "5436:5432"
