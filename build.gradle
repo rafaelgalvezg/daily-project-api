@@ -1,0 +1,181 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.3.4'
+    id 'io.spring.dependency-management' version '1.1.6'
+    id 'org.flywaydb.flyway' version '9.22.3'
+    id 'jacoco'
+}
+
+group = 'dev.rafaelgalvezg'
+version = '0.0.1'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'// 3.3.4
+    implementation 'org.springframework.boot:spring-boot-starter-web'// 3.3.4
+    implementation 'org.flywaydb:flyway-core'//10.10.0
+    implementation 'org.flywaydb:flyway-database-postgresql'//10.10.0
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+    implementation 'org.modelmapper:modelmapper:3.1.0'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.jacoco:org.jacoco.core:0.8.12'
+
+    compileOnly 'org.projectlombok:lombok'//1.18.34
+    runtimeOnly 'org.postgresql:postgresql'//42.7.4
+    annotationProcessor 'org.projectlombok:lombok'//1.18.34
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'//3.3.4
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'//1.10.3
+}
+
+ext {
+
+    migrationDir = 'src/main/resources/db/migration'
+
+    Properties properties = new Properties()
+    def propsFile = file("${projectDir}/src/main/resources/application.yaml")
+    if (propsFile.exists()) {
+        propsFile.withInputStream { stream -> properties.load(stream) }
+    }
+
+    dbUrl = project.hasProperty("migrationUrl")
+            ? project.property("migrationUrl")
+            : (System.getenv("MIGRATION_URL") ?: properties.getProperty('spring.datasource.url', 'jdbc:postgresql://localhost:5436/daily_project'))
+
+    dbUsername = project.hasProperty("migrationUsr")
+            ? project.property("migrationUsr")
+            : (System.getenv("MIGRATION_USR") ?: properties.getProperty('spring.datasource.username', 'rafaelgalvezg'))
+
+    dbPassword = project.hasProperty("migrationPwd")
+            ? project.property("migrationPwd")
+            : (System.getenv("MIGRATION_PWD") ?: properties.getProperty('spring.datasource.password', 'Rgg%123'))
+
+    dbSchema = project.hasProperty("migrationSchema")
+            ? project.property("migrationSchema")
+            : (System.getenv("MIGRATION_SCHEMA") ?: 'public')
+}
+test {
+    finalizedBy jacocoTestReport // report is always generated after tests run
+}
+jacocoTestReport {
+    dependsOn test // tests are required to run before generating the report
+    reports {
+        xml.required = false
+        csv.required = false
+        html.required = true
+        html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
+    }
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, include: ['dev/rafaelgalvezg/dailyprojectapi/service/impl/**/*.class'])
+        }))
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.12"
+    reportsDirectory = layout.buildDirectory.dir('reports/jacoco')
+}
+
+
+test {
+    useJUnitPlatform()
+}
+/*tasks.named('test') {
+    useJUnitPlatform()
+}*/
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.8
+            }
+        }
+    }
+}
+
+flyway {
+    url = project.ext.dbUrl
+    user = project.ext.dbUsername
+    password = project.ext.dbPassword
+    locations = ["filesystem:$migrationDir"]
+    schemas = [project.ext.dbSchema]
+}
+
+// Obtener la versión del proyecto
+def projectVersion = project.version.toString()
+
+tasks.register('createMigration') {
+    def description = project.hasProperty('desc') ? project.desc : 'initial_migration'
+    def timestamp = new Date().format("yyyyMMddHHmmss")
+    def migrationName = "V${timestamp}__${description}.sql"
+
+    // Definir la carpeta de migración por versión
+    def versionDir = file("${migrationDir}/${projectVersion}")
+    def migrationFile = file("${versionDir}/${migrationName}")
+
+    doLast {
+        // Crear la carpeta de versión si no existe
+        if (!versionDir.exists()) {
+            versionDir.mkdirs()
+        }
+        // Crear el archivo de migración
+        migrationFile.text = """--Description: ${description}
+--User: add your name or user here
+-- Date: ${new Date().format("yyyy-MM-dd HH:mm:ss")}
+-- SQL: Add the SQL script here
+"""
+        println "Creada migración: ${migrationFile}"
+    }
+}
+
+def rollbackTemplate = """-- Rollback generated from: %s
+--User: add your name or user here
+-- Date: %s
+-- SQL: Add the SQL script here
+"""
+
+tasks.register('createRollback') {
+    doLast {
+        // Definir la carpeta de migración por versión
+        def versionDir = file("${migrationDir}/${project.version}")
+
+        // Buscar archivos de migración en la carpeta de versión
+        def migrationFiles = versionDir.listFiles()?.findAll { it.name.startsWith('V') && it.name.endsWith('.sql') } ?: []
+
+        if (migrationFiles.isEmpty()) {
+            println "No se encontraron archivos de migración en $versionDir."
+            return
+        }
+
+        // Obtener el último archivo de migración
+        def lastMigrationFile = migrationFiles.sort { it.name }.last()
+        def date = new Date().format("yyyy-MM-dd HH:mm:ss")
+
+        // Crear el archivo de rollback
+        def rollbackFileName = lastMigrationFile.name.replaceFirst(/^V/, 'R').replace('.sql', '_rollback.sql')
+        def rollbackFile = file("${versionDir}/${rollbackFileName}")
+
+        rollbackFile.text = String.format(rollbackTemplate, lastMigrationFile.name, date)
+        println "Archivo de rollback creado: ${rollbackFile}"
+    }
+}
+
+
+

@@ -1,0 +1,37 @@
+server:
+  port: 9099
+  servlet:
+    context-path: /daily-project
+
+spring:
+  application:
+    name: daily-project
+
+  datasource:
+    url: jdbc:postgresql://localhost:5436/daily_project
+    username: rafaelgalvezg
+    password: Rgg%123
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    locations: classpath:db/migration
+    url: jdbc:postgresql://localhost:5436/daily_project
+    user: rafaelgalvezg
+    password: Rgg%123
+    schemas: public
+    table: flyway_schema_history
+    baseline-on-migrate: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+springdoc:
+  show-actuator: true
