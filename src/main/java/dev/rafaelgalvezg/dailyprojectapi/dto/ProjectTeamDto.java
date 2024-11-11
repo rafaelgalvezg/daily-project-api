@@ -1,15 +1,15 @@
 package dev.rafaelgalvezg.dailyprojectapi.dto;
 
-import dev.rafaelgalvezg.dailyprojectapi.model.ProjectRole;
 import lombok.*;
 
-import java.io.Serializable;
+import java.util.List;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProjectTeamDto implements Serializable {
-        private CollaboratorDto member;
-        private ProjectRole role;
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class ProjectTeamDto {
+    private ProjectDto project;
+    private List<MemberRoleDto> members;
 }

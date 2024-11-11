@@ -7,7 +7,6 @@ import lombok.*;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.List;
 
 @Getter
 @Setter
@@ -30,5 +29,4 @@ public class ProjectDto implements Serializable {
     @NotNull(message = "{status.notNull}")
     private Status status;
     private Integer version;
-    private List<ProjectTeamDto> members;
 }

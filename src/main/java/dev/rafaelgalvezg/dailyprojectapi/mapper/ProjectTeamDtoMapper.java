@@ -1,6 +1,9 @@
 package dev.rafaelgalvezg.dailyprojectapi.mapper;
 
+import dev.rafaelgalvezg.dailyprojectapi.dto.MemberRoleDto;
+import dev.rafaelgalvezg.dailyprojectapi.dto.ProjectDto;
 import dev.rafaelgalvezg.dailyprojectapi.dto.ProjectTeamDto;
+import dev.rafaelgalvezg.dailyprojectapi.model.Collaborator;
 import dev.rafaelgalvezg.dailyprojectapi.model.Project;
 import dev.rafaelgalvezg.dailyprojectapi.model.ProjectTeam;
 import dev.rafaelgalvezg.dailyprojectapi.model.ProjectTeamId;
@@ -14,33 +17,22 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Component
 public class ProjectTeamDtoMapper {
-
     private final ModelMapper modelMapper;
-    private final CollaboratorDtoMapper collaboratorDtoMapper;
+    private final ProjectDtoMapper projectMapper;
+    private final CollaboratorDtoMapper collaboratorMapper;
 
-    public ProjectTeamDto toDto(ProjectTeam projectTeam) {
-        ProjectTeamDto projectTeamDto = modelMapper.map(projectTeam, ProjectTeamDto.class);
-        projectTeamDto.setMember(collaboratorDtoMapper.toDto(projectTeam.getCollaborator()));
-        return projectTeamDto;
+    public ProjectTeamDto toDto(Project project, List<ProjectTeam> members) {
+        ProjectDto projectDto = projectMapper.toDto(project);
+        List<MemberRoleDto> memberRoleDtos = members.stream().map(member -> new MemberRoleDto(collaboratorMapper.toDto(member.getCollaborator()), member.getRole())).collect(Collectors.toList());
+        return new ProjectTeamDto(projectDto, memberRoleDtos);
     }
 
-    public ProjectTeam toEntity(ProjectTeamDto projectTeamDto, Project project) {
-        ProjectTeam projectTeam = modelMapper.map(projectTeamDto, ProjectTeam.class);
-        projectTeam.setId(new ProjectTeamId(project.getIdProject(), projectTeamDto.getMember().getIdCollaborator()));
+    public ProjectTeam toEntity(MemberRoleDto memberRoleDto, Project project, Collaborator collaborator) {
+        ProjectTeam projectTeam = new ProjectTeam();
+        projectTeam.setId(new ProjectTeamId(project.getIdProject(), collaborator.getIdCollaborator()));
         projectTeam.setProject(project);
-        projectTeam.setCollaborator(collaboratorDtoMapper.toEntity(projectTeamDto.getMember()));
+        projectTeam.setCollaborator(collaborator);
+        projectTeam.setRole(memberRoleDto.getRole());
         return projectTeam;
-    }
-
-    public List<ProjectTeamDto> toDtoList(List<ProjectTeam> projectTeams) {
-        return projectTeams.stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
-    }
-
-    public List<ProjectTeam> toEntityList(List<ProjectTeamDto> projectTeamDtos, Project project) {
-        return projectTeamDtos.stream()
-                .map(dto -> this.toEntity(dto, project))
-                .collect(Collectors.toList());
     }
 }
