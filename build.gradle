@@ -69,9 +69,20 @@ ext {
             ? project.property("migrationSchema")
             : (System.getenv("MIGRATION_SCHEMA") ?: 'public')
 }
+
+jacoco {
+    toolVersion = "0.8.12"
+    reportsDirectory = layout.buildDirectory.dir('reports/jacoco')
+}
 test {
     finalizedBy jacocoTestReport // report is always generated after tests run
 }
+test {
+    useJUnitPlatform()
+}
+/*tasks.named('test') {
+    useJUnitPlatform()
+}*/
 jacocoTestReport {
     dependsOn test // tests are required to run before generating the report
     reports {
@@ -87,20 +98,8 @@ jacocoTestReport {
     }
 }
 
-jacoco {
-    toolVersion = "0.8.12"
-    reportsDirectory = layout.buildDirectory.dir('reports/jacoco')
-}
-
-
-test {
-    useJUnitPlatform()
-}
-/*tasks.named('test') {
-    useJUnitPlatform()
-}*/
-
 jacocoTestCoverageVerification {
+    dependsOn jacocoTestReport
     violationRules {
         rule {
             limit {
@@ -108,7 +107,13 @@ jacocoTestCoverageVerification {
             }
         }
     }
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, include: ['**/dev/rafaelgalvezg/dailyprojectapi/service/impl/**'])
+        }))
+    }
 }
+
 
 flyway {
     url = project.ext.dbUrl
