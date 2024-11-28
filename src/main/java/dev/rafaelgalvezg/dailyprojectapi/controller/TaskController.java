@@ -40,6 +40,13 @@ public class TaskController {
         return ResponseEntity.ok(task);
     }
 
+    @GetMapping("/project/{idProject}")
+    public ResponseEntity<Page<TaskDto>> findByProject(@PathVariable Long idProject, @ParameterObject Pageable pageable) {
+        Page<Task> tasks = taskService.findByProject(idProject, pageable);
+        Page<TaskDto> tasksDto = tasks.map(taskMapper::toDto);
+        return ResponseEntity.ok(tasksDto);
+    }
+
     @PostMapping
     public ResponseEntity<Void> save(@Valid @RequestBody TaskDto taskDto)  {
         Task savedTask = taskService.save(taskMapper.toEntity(taskDto));

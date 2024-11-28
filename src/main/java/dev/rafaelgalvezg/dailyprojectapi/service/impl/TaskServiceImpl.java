@@ -33,6 +33,11 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    public Page<Task> findByProject(Long idProject, Pageable pageable) {
+        return taskRepository.findByProjectIdProject(idProject, pageable);
+    }
+
+    @Override
     public void delete(Long id) {
         Task task = taskRepository.findById(id).orElseThrow(() -> new ModelNotFoundException("ID NOT FOUND: " + id));
         taskRepository.delete(task);

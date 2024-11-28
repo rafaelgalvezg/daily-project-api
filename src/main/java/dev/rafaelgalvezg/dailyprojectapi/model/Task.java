@@ -53,7 +53,7 @@ public class Task {
     @JoinColumn(name = "associated_Project", nullable = false)
     private Project project;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "task_tag",
             joinColumns = @JoinColumn(name = "id_task", referencedColumnName = "id_task"),
