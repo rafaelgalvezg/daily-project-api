@@ -112,14 +112,19 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    @Transactional
     public ProjectTeamDto updateProjectDetails(Long projectId, ProjectDto projectDto) {
-        if(!projectRepository.existsById(projectId)){
-            throw new ModelNotFoundException("PROJECT NOT FOUND ID: " + projectId);
-        }
+        Project project = projectRepository.findById(projectId).orElseThrow(() -> new ModelNotFoundException("PROJECT NOT FOUND ID: " + projectId));
+        project.setName(projectDto.getName());
+        project.setDescription(projectDto.getDescription());
+        project.setStartDate(projectDto.getStartDate());
+        project.setEndDate(projectDto.getEndDate());
+        project.setStatus(projectDto.getStatus());
+        project.setVersion(projectDto.getVersion());
         try {
-            Project project = projectRepository.save(projectMapper.toEntity(projectDto));
+            Project projectSave = projectRepository.save(project);
             List<ProjectTeam> members = projectTeamRepository.findByProject_IdProject(projectId);
-            return projectTeamMapper.toDto(project, members);
+            return projectTeamMapper.toDto(projectSave, members);
         } catch (ObjectOptimisticLockingFailureException ex) {
             throw new CustomOptimisticLockException("The record has been modified by another user. Please reload and try again.");
         }
