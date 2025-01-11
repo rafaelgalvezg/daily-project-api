@@ -18,8 +18,8 @@ public class ChangeTrackingServiceImpl implements ChangeTrackingService {
     private final ChangeTrackingRepository changeTrackingRepository;
 
     @Override
-    public ChangeTracking save(ChangeTracking ChangeTracking){
-        return changeTrackingRepository.save(ChangeTracking);
+    public ChangeTracking save(ChangeTracking changeTracking){
+        return changeTrackingRepository.save(changeTracking);
     }
 
     @Override
@@ -34,17 +34,17 @@ public class ChangeTrackingServiceImpl implements ChangeTrackingService {
 
     @Override
     public void delete(Long id) {
-        ChangeTracking ChangeTracking = changeTrackingRepository.findById(id).orElseThrow(() -> new ModelNotFoundException("ID NOT FOUND: " + id));
-        changeTrackingRepository.delete(ChangeTracking);
+        ChangeTracking changeTracking = changeTrackingRepository.findById(id).orElseThrow(() -> new ModelNotFoundException("ID NOT FOUND: " + id));
+        changeTrackingRepository.delete(changeTracking);
     }
 
     @Override
-    public ChangeTracking update(Long id, ChangeTracking ChangeTrackingUpdate) {
+    public ChangeTracking update(Long id, ChangeTracking changeTrackingUpdate) {
         if(!changeTrackingRepository.existsById(id)){
             throw new ModelNotFoundException("ID NOT FOUND: " + id);
         }
         try {
-            return changeTrackingRepository.save(ChangeTrackingUpdate);
+            return changeTrackingRepository.save(changeTrackingUpdate);
         } catch (ObjectOptimisticLockingFailureException ex) {
             throw new CustomOptimisticLockException("The record has been modified by another user. Please reload and try again.");
         }
