@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ChangeTrackingServiceImpl implements ChangeTrackingService {
 
+    private static final String MESSAGE_NOT_FOUND = "ID NOT FOUND: ";
     private final ChangeTrackingRepository changeTrackingRepository;
 
     @Override
@@ -29,19 +30,19 @@ public class ChangeTrackingServiceImpl implements ChangeTrackingService {
 
     @Override
     public ChangeTracking findById(Long id) {
-        return changeTrackingRepository.findById(id).orElseThrow(() -> new ModelNotFoundException("ID NOT FOUND: " + id));
+        return changeTrackingRepository.findById(id).orElseThrow(() -> new ModelNotFoundException(MESSAGE_NOT_FOUND + id));
     }
 
     @Override
     public void delete(Long id) {
-        ChangeTracking changeTracking = changeTrackingRepository.findById(id).orElseThrow(() -> new ModelNotFoundException("ID NOT FOUND: " + id));
+        ChangeTracking changeTracking = changeTrackingRepository.findById(id).orElseThrow(() -> new ModelNotFoundException(MESSAGE_NOT_FOUND + id));
         changeTrackingRepository.delete(changeTracking);
     }
 
     @Override
     public ChangeTracking update(Long id, ChangeTracking changeTrackingUpdate) {
         if(!changeTrackingRepository.existsById(id)){
-            throw new ModelNotFoundException("ID NOT FOUND: " + id);
+            throw new ModelNotFoundException(MESSAGE_NOT_FOUND + id);
         }
         try {
             return changeTrackingRepository.save(changeTrackingUpdate);

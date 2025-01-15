@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CollaboratorServiceImpl implements CollaboratorService {
 
+    private static final String MESSAGE_NOT_FOUND = "ID NOT FOUND: ";
     private final CollaboratorRepository collaboratorRepository;
 
     @Override
@@ -29,19 +30,19 @@ public class CollaboratorServiceImpl implements CollaboratorService {
 
     @Override
     public Collaborator findById(Long id) {
-        return collaboratorRepository.findById(id).orElseThrow(() -> new ModelNotFoundException("ID NOT FOUND: " + id));
+        return collaboratorRepository.findById(id).orElseThrow(() -> new ModelNotFoundException(MESSAGE_NOT_FOUND + id));
     }
 
     @Override
     public void delete(Long id) {
-        Collaborator collaborator = collaboratorRepository.findById(id).orElseThrow(() -> new ModelNotFoundException("ID NOT FOUND: " + id));
+        Collaborator collaborator = collaboratorRepository.findById(id).orElseThrow(() -> new ModelNotFoundException(MESSAGE_NOT_FOUND + id));
         collaboratorRepository.delete(collaborator);
     }
 
     @Override
     public Collaborator update(Long id, Collaborator collaborator) {
         if (!collaboratorRepository.existsById(id)) {
-            throw new ModelNotFoundException("ID NOT FOUND: " + id);
+            throw new ModelNotFoundException(MESSAGE_NOT_FOUND + id);
         }
         try {
             return collaboratorRepository.save(collaborator);

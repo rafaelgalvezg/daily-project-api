@@ -30,6 +30,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Service
 public class ProjectServiceImpl implements ProjectService {
+
+    private static final String MESSAGE_PROJECT_NOT_FOUND = "PROJECT NOT FOUND ID: ";
+    private static final String MESSAGE_COLLABORATOR_NOT_FOUND = "COLLABORATOR NOT FOUND ID: ";
+
     private final ProjectRepository projectRepository;
     private final CollaboratorRepository collaboratorRepository;
     private final ProjectTeamRepository projectTeamRepository;
@@ -43,7 +47,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         projectTeamDto.getMembers().forEach(memberRoleDto -> {
             Collaborator collaborator = collaboratorRepository.findById(memberRoleDto.getMember().getIdCollaborator())
-                    .orElseThrow(() -> new ModelNotFoundException("COLLABORATOR NOT FOUND ID: " + memberRoleDto.getMember().getIdCollaborator()));
+                    .orElseThrow(() -> new ModelNotFoundException(MESSAGE_COLLABORATOR_NOT_FOUND + memberRoleDto.getMember().getIdCollaborator()));
             ProjectTeam projectTeam = projectTeamMapper.toEntity(memberRoleDto, project, collaborator);
             projectTeamRepository.save(projectTeam);
         });
@@ -56,7 +60,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Transactional
     public ProjectTeamDto update(Long projectId, List<MemberRoleDto> members) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ModelNotFoundException("PROJECT NOT FOUND ID: " + projectId));
+                .orElseThrow(() -> new ModelNotFoundException(MESSAGE_PROJECT_NOT_FOUND + projectId));
 
         Map<Long, ProjectTeam> currentProjectTeams = projectTeamRepository.findByProject_IdProject(projectId)
                 .stream().collect(Collectors.toMap(pt -> pt.getCollaborator().getIdCollaborator(), pt -> pt));
@@ -72,7 +76,7 @@ public class ProjectServiceImpl implements ProjectService {
                 currentProjectTeams.remove(collaboratorId);
             } else {
                 Collaborator collaborator = collaboratorRepository.findById(collaboratorId)
-                        .orElseThrow(() -> new ModelNotFoundException("COLLABORATOR NOT FOUND ID: " + collaboratorId));
+                        .orElseThrow(() -> new ModelNotFoundException(MESSAGE_COLLABORATOR_NOT_FOUND + collaboratorId));
                 ProjectTeam projectTeam = new ProjectTeam(new ProjectTeamId(projectId, collaboratorId), project, collaborator, memberRoleDto.getRole());
                 projectTeamRepository.save(projectTeam);
             }
@@ -85,7 +89,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public ProjectTeamDto findById(Long projectId) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ModelNotFoundException("PROJECT NOT FOUND ID: " + projectId));
+                .orElseThrow(() -> new ModelNotFoundException(MESSAGE_PROJECT_NOT_FOUND + projectId));
         List<ProjectTeam> members = projectTeamRepository.findByProject_IdProject(projectId);
         return projectTeamMapper.toDto(project, members);
     }
@@ -105,7 +109,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Transactional
     public void delete(Long projectId) {
         if (!projectRepository.existsById(projectId)) {
-            throw new ModelNotFoundException("PROJECT NOT FOUND ID: " + projectId);
+            throw new ModelNotFoundException(MESSAGE_PROJECT_NOT_FOUND + projectId);
         }
         projectTeamRepository.deleteByProject_IdProject(projectId);
         projectRepository.deleteById(projectId);
@@ -114,7 +118,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     @Transactional
     public ProjectTeamDto updateProjectDetails(Long projectId, ProjectDto projectDto) {
-        Project project = projectRepository.findById(projectId).orElseThrow(() -> new ModelNotFoundException("PROJECT NOT FOUND ID: " + projectId));
+        Project project = projectRepository.findById(projectId).orElseThrow(() -> new ModelNotFoundException(MESSAGE_PROJECT_NOT_FOUND + projectId));
         project.setName(projectDto.getName());
         project.setDescription(projectDto.getDescription());
         project.setStartDate(projectDto.getStartDate());

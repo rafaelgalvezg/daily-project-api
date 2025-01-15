@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class TagServiceImpl implements TagService {
 
+    private static final String MESSAGE_NOT_FOUND = "ID NOT FOUND: ";
     private final TagRepository tagRepository;
 
     @Override
@@ -30,12 +31,12 @@ public class TagServiceImpl implements TagService {
 
     @Override
     public Tag findById(Long id) {
-        return tagRepository.findById(id).orElseThrow(() -> new ModelNotFoundException("ID NOT FOUND: " + id));
+        return tagRepository.findById(id).orElseThrow(() -> new ModelNotFoundException(MESSAGE_NOT_FOUND + id));
     }
 
     @Override
     public void delete(Long id) {
-        Tag tag = tagRepository.findById(id).orElseThrow(() -> new ModelNotFoundException("ID NOT FOUND: " + id));
+        Tag tag = tagRepository.findById(id).orElseThrow(() -> new ModelNotFoundException(MESSAGE_NOT_FOUND + id));
         tagRepository.delete(tag);
     }
 
@@ -43,7 +44,7 @@ public class TagServiceImpl implements TagService {
     @Transactional
     public Tag update(Long id, Tag tag) {
         if (!tagRepository.existsById(id)) {
-            throw new ModelNotFoundException("ID NOT FOUND: " + id);
+            throw new ModelNotFoundException(MESSAGE_NOT_FOUND + id);
         }
         try {
             return tagRepository.save(tag);

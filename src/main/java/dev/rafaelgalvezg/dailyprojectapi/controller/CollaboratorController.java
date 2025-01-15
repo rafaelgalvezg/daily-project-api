@@ -44,7 +44,6 @@ public class CollaboratorController {
     public ResponseEntity<Void> save(@Valid @RequestBody CollaboratorDto collaboratorDto)  {
         Collaborator savedCollaborator = collaboratorService.save(collaboratorMapper.toEntity(collaboratorDto));
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(savedCollaborator.getIdCollaborator()).toUri();
-        // URI location = URI.create("/api/v1/collaborators/" + savedCollaborator.getIdCollaborator());
         return ResponseEntity.created(location).build();
     }
 

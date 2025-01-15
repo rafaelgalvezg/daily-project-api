@@ -28,7 +28,7 @@ public class TaskController {
     private final TaskDtoMapper taskMapper;
 
     @GetMapping
-    public ResponseEntity<Page<TaskDto>> findAll(@ParameterObject Pageable pageable){;
+    public ResponseEntity<Page<TaskDto>> findAll(@ParameterObject Pageable pageable){
         Page<Task> tasks = taskService.findAll(pageable);
         Page<TaskDto> tasksDto =tasks.map(taskMapper::toDto);
         return ResponseEntity.ok(tasksDto);
@@ -51,7 +51,6 @@ public class TaskController {
     public ResponseEntity<Void> save(@Valid @RequestBody TaskDto taskDto)  {
         Task savedTask = taskService.save(taskMapper.toEntity(taskDto));
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(savedTask.getIdTask()).toUri();
-        // URI location = URI.create("/api/v1/tasks/" + savedTask.getIdTask());
         return ResponseEntity.created(location).build();
     }
 

@@ -10,7 +10,6 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -31,9 +30,6 @@ public class Collaborator {
 
     @Column(name = "email", nullable = false)
     private String email;
-
-    //@OneToMany(mappedBy = "collaborator", cascade = CascadeType.ALL, orphanRemoval = true)
-    //private List<ProjectTeam> projects;
 
     @Version
     @Column(name = "version")

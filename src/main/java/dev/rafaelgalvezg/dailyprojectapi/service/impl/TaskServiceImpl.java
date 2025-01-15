@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class TaskServiceImpl implements TaskService {
 
+    private static final String MESSAGE_NOT_FOUND = "ID NOT FOUND: ";
     private final TaskRepository taskRepository;
 
     @Override
@@ -29,7 +30,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Task findById(Long id) {
-        return taskRepository.findById(id).orElseThrow(() -> new ModelNotFoundException("ID NOT FOUND: " + id));
+        return taskRepository.findById(id).orElseThrow(() -> new ModelNotFoundException(MESSAGE_NOT_FOUND + id));
     }
 
     @Override
@@ -39,14 +40,14 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public void delete(Long id) {
-        Task task = taskRepository.findById(id).orElseThrow(() -> new ModelNotFoundException("ID NOT FOUND: " + id));
+        Task task = taskRepository.findById(id).orElseThrow(() -> new ModelNotFoundException(MESSAGE_NOT_FOUND + id));
         taskRepository.delete(task);
     }
 
     @Override
     public Task update(Long id, Task task) {
         if (!taskRepository.existsById(id)) {
-            throw new ModelNotFoundException("ID NOT FOUND: " + id);
+            throw new ModelNotFoundException(MESSAGE_NOT_FOUND + id);
         }
         try {
             return taskRepository.save(task);
