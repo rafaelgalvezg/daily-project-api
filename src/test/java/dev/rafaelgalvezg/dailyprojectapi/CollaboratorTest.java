@@ -1,5 +1,6 @@
 package dev.rafaelgalvezg.dailyprojectapi;
 
+import dev.rafaelgalvezg.dailyprojectapi.exception.CustomOptimisticLockException;
 import dev.rafaelgalvezg.dailyprojectapi.exception.ModelNotFoundException;
 import dev.rafaelgalvezg.dailyprojectapi.model.Collaborator;
 import dev.rafaelgalvezg.dailyprojectapi.repository.CollaboratorRepository;
@@ -14,11 +15,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -134,4 +138,18 @@ class CollaboratorTest {
 
         verify(collaboratorRepository, Mockito.times(1)).existsById(id);
     }
+
+    @Test
+    @DisplayName("Should throw CustomOptimisticLockException on optimistic lock failure")
+    void testUpdateThrowsCustomOptimisticLockException() {
+
+        Collaborator collaborator = CollaboratorTestFactory.createCollaborator();
+        Long collaboratorId = collaborator.getIdCollaborator();
+
+        when(collaboratorRepository.existsById(any())).thenReturn(true);
+        when(collaboratorRepository.save(any())).thenThrow(ObjectOptimisticLockingFailureException.class);
+
+        assertThrows(CustomOptimisticLockException.class, () -> collaboratorService.update(collaboratorId, collaborator));
+    }
+
 }

@@ -1,6 +1,6 @@
 package dev.rafaelgalvezg.dailyprojectapi;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -161,9 +161,10 @@ class ProjectTest {
     @DisplayName("Should throw ModelNotFoundException when Project not found in update")
     void testUpdateProjectTeam_ProjectNotFound() {
         Long projectId = 1L;
+        List<MemberRoleDto> memberRoles = ProjectTestFactory.createMemberRoleDtoList();
         when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
 
-        assertThrows(ModelNotFoundException.class, () -> projectService.update(projectId, ProjectTestFactory.createMemberRoleDtoList()));
+        assertThrows(ModelNotFoundException.class, () -> projectService.update(projectId, memberRoles));
     }
 
     @Test
@@ -183,6 +184,19 @@ class ProjectTest {
 
         assertNotNull(result);
         assertEquals(projectTeamDto, result);
+    }
+
+    @Test
+    @DisplayName("Test findById throws exception")
+    void testFindByIdThrowsException() {
+        Long id = 1L;
+        when(projectRepository.findById(id)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> projectService.findById(id))
+                .isInstanceOf(ModelNotFoundException.class)
+                .hasMessageContaining("PROJECT NOT FOUND ID: " + id);
+
+        verify(projectRepository, times(1)).findById(id);
     }
 
     @Test
@@ -216,8 +230,7 @@ class ProjectTest {
         List<ProjectTeam> projectTeams = List.of(ProjectTestFactory.createProjectTeam());
         ProjectTeamDto projectTeamDto = ProjectTestFactory.createProjectTeamDto();
 
-        when(projectRepository.existsById(projectId)).thenReturn(true);
-        when(projectMapper.toEntity(projectDto)).thenReturn(project);
+        when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
         when(projectRepository.save(any(Project.class))).thenReturn(project);
         when(projectTeamRepository.findByProject_IdProject(projectId)).thenReturn(projectTeams);
         when(projectTeamMapper.toDto(project, projectTeams)).thenReturn(projectTeamDto);
@@ -236,8 +249,9 @@ class ProjectTest {
     void testUpdateProjectDetails_OptimisticLockingFailure() {
         Long projectId = 1L;
         ProjectDto projectDto = ProjectTestFactory.createProjectDto();
+        Project project = ProjectTestFactory.createProject();
 
-        when(projectRepository.existsById(projectId)).thenReturn(true);
+        when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
         when(projectRepository.save(any())).thenThrow(ObjectOptimisticLockingFailureException.class);
 
         assertThrows(CustomOptimisticLockException.class, () -> projectService.updateProjectDetails(projectId, projectDto));
@@ -249,7 +263,7 @@ class ProjectTest {
         Long projectId = 1L;
         ProjectDto projectDto = ProjectTestFactory.createProjectDto();
 
-        when(projectRepository.existsById(projectId)).thenReturn(false);
+        when(projectRepository.findById(projectId)).thenReturn(Optional.empty());
 
         assertThrows(ModelNotFoundException.class, () -> projectService.updateProjectDetails(projectId, projectDto));
         verify(projectRepository, never()).save(any(Project.class));
@@ -290,15 +304,13 @@ class ProjectTest {
     @DisplayName("Should throw ModelNotFoundException when collaborator not found")
     void testCollaboratorNotFoundException() {
         Project project = ProjectTestFactory.createProject();
-        Collaborator collaborator = ProjectTestFactory.createCollaborator();
-
-        List<MemberRoleDto> members = new ArrayList<>();
-        MemberRoleDto memberRoleDto = ProjectTestFactory.createMemberRoleDto();
-        members.add(memberRoleDto);
+        List<MemberRoleDto> members = List.of(ProjectTestFactory.createMemberRoleDto());
 
         when(projectRepository.findById(project.getIdProject())).thenReturn(Optional.of(project));
-        when(collaboratorRepository.findById(collaborator.getIdCollaborator())).thenReturn(Optional.empty());
+        when(collaboratorRepository.findById(anyLong())).thenReturn(Optional.empty());
 
-        assertThrows(ModelNotFoundException.class, () -> projectService.update(project.getIdProject(), members));
+        Long projectId = project.getIdProject();
+
+        assertThrows(ModelNotFoundException.class, () -> projectService.update(projectId, members));
     }
 }

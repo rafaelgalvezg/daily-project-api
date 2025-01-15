@@ -1,5 +1,6 @@
 package dev.rafaelgalvezg.dailyprojectapi;
 
+import dev.rafaelgalvezg.dailyprojectapi.exception.CustomOptimisticLockException;
 import dev.rafaelgalvezg.dailyprojectapi.exception.ModelNotFoundException;
 import dev.rafaelgalvezg.dailyprojectapi.model.ChangeTracking;
 import dev.rafaelgalvezg.dailyprojectapi.repository.ChangeTrackingRepository;
@@ -13,11 +14,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 
@@ -132,5 +135,17 @@ class ChangeTrackingTest {
                 .hasMessageContaining("ID NOT FOUND: " + id);
 
         verify(changeTrackingRepository, times(1)).existsById(id);
+    }
+
+    @Test
+    @DisplayName("Should throw CustomOptimisticLockException on optimistic lock failure")
+    void testUpdateThrowsCustomOptimisticLockException() {
+        ChangeTracking changeTracking = ChangeTrackingTestFactory.createChangeTracking();
+        Long changeTrackingId = changeTracking.getIdTracking();
+
+        when(changeTrackingRepository.existsById(changeTrackingId)).thenReturn(true);
+        when(changeTrackingRepository.save(any())).thenThrow(ObjectOptimisticLockingFailureException.class);
+
+        assertThrows(CustomOptimisticLockException.class, () -> changeTrackingService.update(changeTrackingId, changeTracking));
     }
 }

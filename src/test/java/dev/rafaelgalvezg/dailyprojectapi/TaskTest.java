@@ -1,5 +1,6 @@
 package dev.rafaelgalvezg.dailyprojectapi;
 
+import dev.rafaelgalvezg.dailyprojectapi.exception.CustomOptimisticLockException;
 import dev.rafaelgalvezg.dailyprojectapi.exception.ModelNotFoundException;
 import dev.rafaelgalvezg.dailyprojectapi.model.Task;
 import dev.rafaelgalvezg.dailyprojectapi.repository.TaskRepository;
@@ -14,11 +15,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -134,4 +137,31 @@ class TaskTest {
 
         verify(taskRepository, Mockito.times(1)).existsById(id);
     }
+
+    @Test
+    @DisplayName("Test find tasks by project successfully")
+    void testFindByProject() {
+        Page<Task> tasksPage = TaskTestFactory.createTasksPage();
+        Long idProject = 1L;
+        Pageable pageable = PageRequest.of(0, 10);
+        when(taskRepository.findByProjectIdProject(idProject, pageable)).thenReturn(tasksPage);
+
+        Page<Task> resultPage = taskService.findByProject(idProject, pageable);
+        assertThat(resultPage).isNotEmpty();
+
+        verify(taskRepository, Mockito.times(1)).findByProjectIdProject(idProject, pageable);
+    }
+
+    @Test
+    @DisplayName("Should throw OCustomOptimisticLockException on optimistic lock failure")
+    void testUpdateThrowsCustomOptimisticLockException() {
+        Task task = TaskTestFactory.createTask();
+        Long idTask = task.getIdTask();
+
+        when(taskRepository.existsById(idTask)).thenReturn(true);
+        when(taskRepository.save(task)).thenThrow(ObjectOptimisticLockingFailureException.class);
+
+        assertThrows(CustomOptimisticLockException.class, () -> taskService.update(idTask, task));
+    }
+
 }

@@ -1,5 +1,6 @@
 package dev.rafaelgalvezg.dailyprojectapi;
 
+import dev.rafaelgalvezg.dailyprojectapi.exception.CustomOptimisticLockException;
 import dev.rafaelgalvezg.dailyprojectapi.model.Tag;
 import dev.rafaelgalvezg.dailyprojectapi.repository.TagRepository;
 import dev.rafaelgalvezg.dailyprojectapi.exception.ModelNotFoundException;
@@ -13,13 +14,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -135,5 +136,17 @@ class TagTest {
                 .hasMessageContaining("ID NOT FOUND: " + id);
 
         verify(tagRepository, times(1)).existsById(id);
+    }
+
+    @Test
+    @DisplayName("Should throw CustomOptimisticLockException on optimistic lock failure")
+    void testUpdateThrowsCustomOptimisticLockException() {
+        Tag tag = TagTestFactory.createTag();
+        Long tagId = tag.getIdTag();
+
+        when(tagRepository.existsById(tagId)).thenReturn(true);
+        when(tagRepository.save(any())).thenThrow(ObjectOptimisticLockingFailureException.class);
+
+        assertThrows(CustomOptimisticLockException.class, () -> tagService.update(tagId, tag));
     }
 }
