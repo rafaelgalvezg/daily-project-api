@@ -12,6 +12,7 @@ CREATE TYPE project_role AS ENUM ('PROJECT_LEADER', 'PRODUCT_MANAGER', 'DEVELOPE
 CREATE TABLE users
 (
     id_user           INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    username          VARCHAR(50) UNIQUE NOT NULL,
     name              VARCHAR(255)        NOT NULL,
     email             VARCHAR(255) UNIQUE NOT NULL,
     password          VARCHAR(255)        NOT NULL,
@@ -21,6 +22,7 @@ CREATE TABLE users
     version           INTEGER
 );
 COMMENT ON COLUMN users.id_user IS 'Unique ID for each user';
+COMMENT ON COLUMN users.username IS 'Username of the user, must be unique';
 COMMENT ON COLUMN users.name IS 'Full name of the user';
 COMMENT ON COLUMN users.email IS 'Email address of the user, must be unique';
 COMMENT ON COLUMN users.password IS 'Encrypted password of the user';
