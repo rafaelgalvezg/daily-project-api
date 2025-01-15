@@ -25,6 +25,8 @@ public class User {
     @EqualsAndHashCode.Include
     @Column(name = "id_user", nullable = false)
     private Long idUser;
+    @Column(name = "username", nullable = false, unique = true)
+    private String username;
     @Column(name = "password", nullable = false)
     private String password;
     @Column(name = "name", nullable = false)

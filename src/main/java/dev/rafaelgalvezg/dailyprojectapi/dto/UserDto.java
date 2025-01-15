@@ -1,6 +1,5 @@
 package dev.rafaelgalvezg.dailyprojectapi.dto;
 
-import dev.rafaelgalvezg.dailyprojectapi.model.Role;
 import dev.rafaelgalvezg.dailyprojectapi.model.StatusUser;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -18,6 +17,9 @@ import java.util.List;
 public class UserDto implements Serializable {
         @EqualsAndHashCode.Include
         private Long idUser;
+        @NotNull(message = "{username.notNull}")
+        @Size(min = 2, max = 50, message = "{username.size50}")
+        private String username;
         @NotNull(message = "{name.notNull}")
         @Size(min = 2, max = 255, message = "{name.size255}")
         private String name;
@@ -28,6 +30,6 @@ public class UserDto implements Serializable {
         private String password;
         @NotNull(message = "{status.notNull}")
         private StatusUser status;
-        private List<Role> roles;
+        private List<RoleDto> roles;
         private Integer version;
 }
