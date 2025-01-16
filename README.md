@@ -75,8 +75,8 @@ This will generate a rollback file in the same directory as the migrations, base
 **Note:** Rollbacks must be executed manually, as the `undo` feature of Flyway is a premium feature not available in the free version.
 
 ## Frontend Repository
-The frontend repository for this project can be found at the following link: [`https://github.com/rafaelgalvezg/daily-project-web.git`]
-
+The frontend repository for this project can be found at the following link:
+- [Daily Project Frontend Repository](https://github.com/rafaelgalvezg/daily-project-web.git)
 ## Pending Tasks (Backlog)
 - Implement integration tests for controllers.
 - Add custom logs.
